@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        color: #cccccc;
+      }
+      #canvas {
+        background-image: url("foo.png");
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+      div {
+        float: left;
+        padding: 10px;
+        margin: 10px;
+      }
+    </style>
+  </head>
+
+  <body onload="processor.doLoad()">
+    <div>
+      <video id="video" src="./video.ogv" controls="true"></video>
+    </div>
+    <div>
+      <canvas id="canvas" width="320" height="192"></canvas>
+    </div>
+  </body>
+  <script>
+    console.log("测试canvas与视频");
+    var processor = {
+      doLoad: function () {},
+      timer: function () {},
+      draw: function () {},
+      computeFrame: function () {},
+    };
+
+    processor.timer = function timer() {
+      let self = this;
+      setTimeout(() => {
+        self.timer();
+      }, 0);
+      if (this.$video.paused || this.$video.ended) {
+        return;
+      }
+      this.draw();
+    };
+
+    processor.doLoad = function doload() {
+      this.$video = document.querySelector("#video");
+      this.width = this.$video.videoWidth;
+      this.height = this.$video.videoHeight;
+
+      this.$canvas = document.querySelector("#canvas");
+      this.$canvas2 = document.createElement("canvas");
+      // create时 记得设置canvas宽高
+      this.$canvas2.width = this.width;
+      this.$canvas2.height = this.height;
+
+      console.log(this.$canvas);
+      this.ctx = this.$canvas.getContext("2d");
+      this.ctx2 = this.$canvas2.getContext("2d");
+      this.timer();
+    };
+
+    processor.draw = function draw() {
+      this.ctx2.drawImage(this.$video, 0, 0, 320, 192);
+      let frame = this.ctx2.getImageData(0, 0, 320, 192);
+      // console.log(frame);
+      this.computeFrame(frame);
+      this.ctx.putImageData(frame, 0, 0);
+      // this.ctx.drawImage(
+      //   this.$video,
+      //   0,
+      //   0,
+      //   this.$video.videoWidth,
+      //   this.$video.videoHeight
+      // );
+    };
+
+    processor.computeFrame = function computeFrame(frame) {
+      let l = frame.data.length / 4;
+      for (let i = 0; i < l; i++) {
+        let r = frame.data[i * 4 + 0];
+        let g = frame.data[i * 4 + 1];
+        let b = frame.data[i * 4 + 2];
+        if (g > 100 && r > 100 && b < 43) frame.data[i * 4 + 3] = 0;
+      }
+    };
+  </script>
+</html>
